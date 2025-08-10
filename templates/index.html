@@ -1,0 +1,90 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YouTube Transcriber</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>YouTube Transcriber (CN/EN)</h1>
+      <form id="form">
+        <input id="url" type="url" placeholder="Paste YouTube URL" required />
+        <select id="model">
+          <option value="base">base</option>
+          <option value="small" selected>small</option>
+          <option value="medium">medium</option>
+          <option value="large">large</option>
+        </select>
+        <select id="task">
+          <option value="transcribe" selected>transcribe (same language)</option>
+          <option value="translate">translate (to English)</option>
+        </select>
+        <label><input id="srt" type="checkbox" checked /> Write SRT</label>
+        <button type="submit">Transcribe</button>
+      </form>
+
+      <section id="status"></section>
+
+      <section id="result" class="hidden">
+        <h2 id="title"></h2>
+        <p><strong>Detected language:</strong> <span id="lang"></span></p>
+        <textarea id="text" rows="16" readonly></textarea>
+        <div id="segments"></div>
+        <a id="srt_link" href="#" download style="display:none;">Download SRT</a>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById('form');
+      const statusEl = document.getElementById('status');
+      const resultEl = document.getElementById('result');
+      const titleEl = document.getElementById('title');
+      const langEl = document.getElementById('lang');
+      const textEl = document.getElementById('text');
+      const segEl = document.getElementById('segments');
+      const srtLink = document.getElementById('srt_link');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        resultEl.classList.add('hidden');
+        statusEl.textContent = "Downloading & transcribing... this can take a while.";
+        const url = document.getElementById('url').value;
+        const model = document.getElementById('model').value;
+        const task = document.getElementById('task').value;
+        const write_srt = document.getElementById('srt').checked;
+
+        try {
+          const resp = await fetch('/api/transcribe', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ url, model, task, language: null, write_srt })
+          });
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.error || 'Failed');
+
+          titleEl.textContent = data.title || '(Untitled)';
+          langEl.textContent = data.language || '(auto)';
+          textEl.value = data.text || '';
+          segEl.innerHTML = '<h3>Segments</h3>' + (data.segments || []).map(
+            s => `<div>[${s.start.toFixed(2)} - ${s.end.toFixed(2)}] ${s.text}</div>`
+          ).join('');
+          if (data.srt_path) {
+            const file = encodeURIComponent(data.srt_path.split('/').pop());
+            srtLink.href = `/download?file=${file}`;
+            srtLink.style.display = 'inline-block';
+            srtLink.textContent = 'Download SRT';
+          } else {
+            srtLink.style.display = 'none';
+          }
+          resultEl.classList.remove('hidden');
+          statusEl.textContent = "Done.";
+        } catch (err) {
+          statusEl.textContent = 'Error: ' + err.message;
+        }
+      });
+    </script>
+  </body>
+</html>
