@@ -5,7 +5,14 @@ import pathlib
 from typing import Tuple
 
 def sanitize_filename(name: str) -> str:
-    return re.sub(r'[\\/*?:"<>|]', "_", name).strip()
+    """Sanitize filename to be filesystem-safe."""
+    # Remove invalid characters and limit length
+    name = re.sub(r'[\\/*?:"<>|]', "_", name)
+    name = re.sub(r'\s+', " ", name).strip()
+    # Limit length to avoid filesystem issues
+    if len(name) > 200:
+        name = name[:200].strip()
+    return name
 
 def download_audio(url: str, out_dir: str) -> Tuple[str, str]:
     """Download best audio from YouTube and convert to mp3.
@@ -23,16 +30,49 @@ def download_audio(url: str, out_dir: str) -> Tuple[str, str]:
             "preferredquality": "192",
         }],
         "noplaylist": True,
-        "quiet": True,
-        "no_warnings": True,
+        "quiet": False,  # Enable some output for debugging
+        "no_warnings": False,
+        # Add these for better compatibility
+        "extractaudio": True,
+        "audioformat": "mp3",
+        "prefer_ffmpeg": True,
     }
 
+    print(f"Downloading audio from: {url}")
+    
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        title = sanitize_filename(info.get("title", "audio"))
-        audio_path = out_dir / f"{title}.mp3"
-        if not audio_path.exists():
-            candidates = list(out_dir.glob(f"{title}.*"))
-            if candidates:
-                audio_path = candidates[0]
-        return str(audio_path), title
+        try:
+            info = ydl.extract_info(url, download=True)
+            raw_title = info.get("title", "audio")
+            title = sanitize_filename(raw_title)
+            
+            print(f"Downloaded: {title}")
+            
+            # Look for the downloaded file
+            audio_path = out_dir / f"{title}.mp3"
+            
+            # If exact match not found, look for similar files
+            if not audio_path.exists():
+                # Look for MP3 files that might match
+                candidates = list(out_dir.glob("*.mp3"))
+                if candidates:
+                    # Get the most recently modified file
+                    audio_path = max(candidates, key=lambda p: p.stat().st_mtime)
+                    print(f"Using file: {audio_path}")
+                else:
+                    # Look for any audio files
+                    audio_extensions = [".mp3", ".wav", ".m4a", ".ogg", ".flac"]
+                    for ext in audio_extensions:
+                        candidates = list(out_dir.glob(f"*{ext}"))
+                        if candidates:
+                            audio_path = max(candidates, key=lambda p: p.stat().st_mtime)
+                            break
+            
+            if not audio_path.exists():
+                raise FileNotFoundError(f"Downloaded audio file not found in {out_dir}")
+                
+            return str(audio_path), title
+            
+        except Exception as e:
+            print(f"Download error: {e}")
+            raise
