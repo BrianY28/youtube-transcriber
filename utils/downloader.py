@@ -14,12 +14,24 @@ def sanitize_filename(name: str) -> str:
         name = name[:200].strip()
     return name
 
-def download_audio(url: str, out_dir: str) -> Tuple[str, str]:
+def download_audio(url: str, out_dir: str, auth_opts: dict = None) -> Tuple[str, str]:
     """Download best audio from YouTube and convert to mp3.
     Returns (audio_path, title)
+    
+    Args:
+        url: YouTube URL
+        out_dir: Output directory
+        auth_opts: Authentication options dict with keys:
+            - cookies: Path to cookies file
+            - cookies_from_browser: Browser name to extract cookies from
+            - username: YouTube username/email
+            - password: YouTube password
     """
     out_dir = pathlib.Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    
+    if auth_opts is None:
+        auth_opts = {}
 
     ydl_opts = {
         "format": "bestaudio/best",
@@ -37,6 +49,19 @@ def download_audio(url: str, out_dir: str) -> Tuple[str, str]:
         "audioformat": "mp3",
         "prefer_ffmpeg": True,
     }
+    
+    # Add authentication options
+    if auth_opts.get('cookies'):
+        ydl_opts['cookiefile'] = auth_opts['cookies']
+    
+    if auth_opts.get('cookies_from_browser'):
+        ydl_opts['cookiesfrombrowser'] = (auth_opts['cookies_from_browser'], None, None, None)
+    
+    if auth_opts.get('username'):
+        ydl_opts['username'] = auth_opts['username']
+    
+    if auth_opts.get('password'):
+        ydl_opts['password'] = auth_opts['password']
 
     print(f"Downloading audio from: {url}")
     

@@ -13,6 +13,14 @@ def main():
     parser.add_argument("--language", default=None, help="Force language code, e.g., zh or en")
     parser.add_argument("--srt", action="store_true", help="Also write .srt subtitles")
     parser.add_argument("--outputs", default="outputs", help="Output directory")
+    
+    # Authentication options for membership videos
+    auth_group = parser.add_argument_group("Authentication (for membership videos)")
+    auth_group.add_argument("--cookies", help="Path to cookies file (Netscape format)")
+    auth_group.add_argument("--cookies-from-browser", help="Extract cookies from browser (chrome, firefox, safari, edge)")
+    auth_group.add_argument("--username", help="YouTube account username/email")
+    auth_group.add_argument("--password", help="YouTube account password")
+    
     args = parser.parse_args()
 
     out_dir = pathlib.Path(args.outputs)
@@ -20,7 +28,18 @@ def main():
 
     # Determine input type
     if args.input.startswith("http://") or args.input.startswith("https://"):
-        audio_path, title = download_audio(args.input, out_dir=str(out_dir))
+        # Prepare authentication options
+        auth_opts = {}
+        if args.cookies:
+            auth_opts['cookies'] = args.cookies
+        if args.cookies_from_browser:
+            auth_opts['cookies_from_browser'] = args.cookies_from_browser
+        if args.username:
+            auth_opts['username'] = args.username
+        if args.password:
+            auth_opts['password'] = args.password
+            
+        audio_path, title = download_audio(args.input, out_dir=str(out_dir), auth_opts=auth_opts)
     else:
         # Local file
         p = pathlib.Path(args.input)

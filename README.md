@@ -32,6 +32,29 @@ python transcribe.py "https://www.youtube.com/watch?v=VIDEO_ID"   --model small 
 ```
 Outputs: `./outputs/<video_title>.txt` and optionally `.srt`
 
+### Membership Videos (Authentication)
+For YouTube membership-only videos you've purchased access to:
+
+**Option 1: Browser cookies (Recommended)**
+```bash
+python transcribe.py "MEMBERSHIP_VIDEO_URL" --cookies-from-browser chrome --model small --srt
+```
+
+**Option 2: Manual cookies file**
+```bash
+python transcribe.py "MEMBERSHIP_VIDEO_URL" --cookies cookies.txt --model small --srt
+```
+
+**Option 3: Username/Password (Less secure)**
+```bash
+python transcribe.py "MEMBERSHIP_VIDEO_URL" --username your@email.com --password yourpass --model small --srt
+```
+
+**Extract cookies helper:**
+```bash
+python extract_cookies.py --browser chrome  # Test cookie extraction
+```
+
 Transcribe a local file:
 ```bash
 python transcribe.py ./sample.mp3 --model small --srt
@@ -51,7 +74,11 @@ Open: http://127.0.0.1:8000/
   "model": "small",
   "task": "transcribe",
   "language": null,
-  "write_srt": true
+  "write_srt": true,
+  "cookies_from_browser": "chrome",
+  "cookies": null,
+  "username": null,
+  "password": null
 }
 ```
 Response (truncated):
@@ -85,6 +112,7 @@ youtube-transcriber/
 - This tool is for personal/educational use. Respect copyright and YouTube ToS.
 - Whisper `large` is the most accurate but slow/heavy. `small`/`medium` are good trade-offs.
 - If you see `ffmpeg not found`, install ffmpeg (macOS: `brew install ffmpeg`).
+- **For membership videos**: See [MEMBERSHIP_GUIDE.md](MEMBERSHIP_GUIDE.md) for detailed authentication instructions.
 
 ## License
 MIT

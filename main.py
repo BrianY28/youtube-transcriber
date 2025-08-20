@@ -23,6 +23,12 @@ class TranscribeBody(BaseModel):
     task: str | None = "transcribe"      # transcribe | translate
     language: str | None = None          # e.g., "zh" | "en"; None = auto
     write_srt: bool | None = True
+    
+    # Authentication options for membership videos
+    cookies: str | None = None           # Path to cookies file
+    cookies_from_browser: str | None = None  # Browser name (chrome, firefox, safari, edge)
+    username: str | None = None          # YouTube username/email
+    password: str | None = None          # YouTube password
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
@@ -31,7 +37,18 @@ async def index(request: Request):
 @app.post("/api/transcribe")
 async def api_transcribe(body: TranscribeBody):
     try:
-        audio_path, title = download_audio(body.url, out_dir=str(OUTPUTS_DIR))
+        # Prepare authentication options
+        auth_opts = {}
+        if body.cookies:
+            auth_opts['cookies'] = body.cookies
+        if body.cookies_from_browser:
+            auth_opts['cookies_from_browser'] = body.cookies_from_browser
+        if body.username:
+            auth_opts['username'] = body.username
+        if body.password:
+            auth_opts['password'] = body.password
+            
+        audio_path, title = download_audio(body.url, out_dir=str(OUTPUTS_DIR), auth_opts=auth_opts)
         result = transcribe_file(
             audio_path,
             model_name=body.model or "small",

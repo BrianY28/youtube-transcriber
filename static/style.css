@@ -6,8 +6,36 @@ h1 { margin-bottom: 16px; }
 form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 input[type="url"] { flex: 1 1 420px; padding: 10px; }
 select, button, label { padding: 10px; }
+input[type="text"], input[type="email"], input[type="password"] { padding: 10px; }
 #status { margin: 8px 0 16px; color: #333; }
 .hidden { display: none; }
 #text { width: 100%; margin-top: 8px; padding: 10px; }
 #segments { margin-top: 12px; line-height: 1.5; }
 a#srt_link { margin-top: 12px; display: inline-block; }
+
+/* Authentication styles */
+details { 
+  width: 100%; 
+  margin: 8px 0; 
+  border: 1px solid #ddd; 
+  border-radius: 4px; 
+  padding: 8px;
+}
+summary { 
+  cursor: pointer; 
+  font-weight: 500; 
+  padding: 4px 0;
+}
+.auth-options { 
+  margin-top: 8px; 
+}
+.auth-section { 
+  margin-top: 8px; 
+  display: flex; 
+  gap: 8px; 
+  flex-wrap: wrap;
+}
+.auth-section input, .auth-section select { 
+  flex: 1; 
+  min-width: 150px; 
+}

@@ -23,6 +23,37 @@
           <option value="translate">translate (to English)</option>
         </select>
         <label><input id="srt" type="checkbox" checked /> Write SRT</label>
+        
+        <details>
+          <summary>Authentication (for membership videos)</summary>
+          <div class="auth-options">
+            <select id="auth-type">
+              <option value="none">No authentication</option>
+              <option value="browser">Browser cookies</option>
+              <option value="file">Cookies file</option>
+              <option value="login">Username/Password</option>
+            </select>
+            
+            <div id="browser-auth" class="auth-section hidden">
+              <select id="browser">
+                <option value="chrome">Chrome</option>
+                <option value="firefox">Firefox</option>
+                <option value="safari">Safari</option>
+                <option value="edge">Edge</option>
+              </select>
+            </div>
+            
+            <div id="file-auth" class="auth-section hidden">
+              <input id="cookies-file" type="text" placeholder="Path to cookies file" />
+            </div>
+            
+            <div id="login-auth" class="auth-section hidden">
+              <input id="username" type="email" placeholder="YouTube email" />
+              <input id="password" type="password" placeholder="Password" />
+            </div>
+          </div>
+        </details>
+        
         <button type="submit">Transcribe</button>
       </form>
 
@@ -46,21 +77,46 @@
       const textEl = document.getElementById('text');
       const segEl = document.getElementById('segments');
       const srtLink = document.getElementById('srt_link');
+      
+      // Handle authentication type changes
+      const authType = document.getElementById('auth-type');
+      const authSections = document.querySelectorAll('.auth-section');
+      
+      authType.addEventListener('change', () => {
+        authSections.forEach(section => section.classList.add('hidden'));
+        if (authType.value !== 'none') {
+          document.getElementById(`${authType.value}-auth`).classList.remove('hidden');
+        }
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         resultEl.classList.add('hidden');
         statusEl.textContent = "Downloading & transcribing... this can take a while.";
+        
         const url = document.getElementById('url').value;
         const model = document.getElementById('model').value;
         const task = document.getElementById('task').value;
         const write_srt = document.getElementById('srt').checked;
+        
+        // Prepare authentication options
+        const requestData = { url, model, task, language: null, write_srt };
+        
+        const authTypeValue = authType.value;
+        if (authTypeValue === 'browser') {
+          requestData.cookies_from_browser = document.getElementById('browser').value;
+        } else if (authTypeValue === 'file') {
+          requestData.cookies = document.getElementById('cookies-file').value;
+        } else if (authTypeValue === 'login') {
+          requestData.username = document.getElementById('username').value;
+          requestData.password = document.getElementById('password').value;
+        }
 
         try {
           const resp = await fetch('/api/transcribe', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ url, model, task, language: null, write_srt })
+            body: JSON.stringify(requestData)
           });
           const data = await resp.json();
           if (!resp.ok) throw new Error(data.error || 'Failed');
