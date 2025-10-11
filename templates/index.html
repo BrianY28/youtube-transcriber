@@ -22,6 +22,30 @@
           <option value="transcribe" selected>transcribe (same language)</option>
           <option value="translate">translate (to English)</option>
         </select>
+        <select id="language">
+          <option value="">Auto-detect language</option>
+          <option value="zh">Chinese (中文)</option>
+          <option value="en">English</option>
+          <option value="ja">Japanese (日本語)</option>
+          <option value="ko">Korean (한국어)</option>
+          <option value="es">Spanish (Español)</option>
+          <option value="fr">French (Français)</option>
+          <option value="de">German (Deutsch)</option>
+          <option value="it">Italian (Italiano)</option>
+          <option value="pt">Portuguese (Português)</option>
+          <option value="ru">Russian (Русский)</option>
+          <option value="ar">Arabic (العربية)</option>
+          <option value="hi">Hindi (हिन्दी)</option>
+          <option value="th">Thai (ไทย)</option>
+          <option value="vi">Vietnamese (Tiếng Việt)</option>
+          <option value="tr">Turkish (Türkçe)</option>
+          <option value="pl">Polish (Polski)</option>
+          <option value="nl">Dutch (Nederlands)</option>
+          <option value="sv">Swedish (Svenska)</option>
+          <option value="da">Danish (Dansk)</option>
+          <option value="no">Norwegian (Norsk)</option>
+          <option value="fi">Finnish (Suomi)</option>
+        </select>
         <label><input id="srt" type="checkbox" checked /> Write SRT</label>
         
         <details>
@@ -97,10 +121,11 @@
         const url = document.getElementById('url').value;
         const model = document.getElementById('model').value;
         const task = document.getElementById('task').value;
+        const language = document.getElementById('language').value || null;
         const write_srt = document.getElementById('srt').checked;
         
         // Prepare authentication options
-        const requestData = { url, model, task, language: null, write_srt };
+        const requestData = { url, model, task, language, write_srt };
         
         const authTypeValue = authType.value;
         if (authTypeValue === 'browser') {

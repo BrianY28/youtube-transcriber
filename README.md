@@ -4,10 +4,10 @@ Turn any YouTube URL into text (and SRT subtitles). Supports Chinese and English
 
 ## Features
 - Paste a YouTube URL → auto-download audio → transcribe with Whisper
-- Auto language detection (Chinese/English/mixed)
+- Auto language detection (Chinese/English/mixed) or force specific language
 - CLI tool and FastAPI web server
 - Outputs: full text, segments (with timestamps), and optional `.srt`
-- Simple web UI in `/`
+- Simple web UI with language selection dropdown
 
 ## Tech stack
 - Python 3.10+
@@ -26,11 +26,24 @@ pip install -r requirements.txt
 
 ## Quick start — CLI
 ```bash
-python transcribe.py "https://www.youtube.com/watch?v=VIDEO_ID"   --model small            # base | small | medium | large
+python transcribe.py "https://www.youtube.com/watch?v=GlZN3qzfJ64" \
+  --model small            # base | small | medium | large
   --task transcribe        # transcribe (same language) | translate (to English)
+  --language zh            # force language: zh | en | ja | ko | es | fr | de | etc. (optional)
   --srt                    # also write .srt subtitles
 ```
 Outputs: `./outputs/<video_title>.txt` and optionally `.srt`
+
+### Force Language Detection
+By default, Whisper auto-detects the language. You can force a specific language:
+
+```bash
+python transcribe.py "VIDEO_URL" --language zh --model small    # Force Chinese
+python transcribe.py "VIDEO_URL" --language en --model small    # Force English
+python transcribe.py "VIDEO_URL" --language ja --model small    # Force Japanese
+```
+
+Supported languages: `zh` (Chinese), `en` (English), `ja` (Japanese), `ko` (Korean), `es` (Spanish), `fr` (French), `de` (German), `it` (Italian), `pt` (Portuguese), `ru` (Russian), `ar` (Arabic), `hi` (Hindi), `th` (Thai), `vi` (Vietnamese), `tr` (Turkish), `pl` (Polish), `nl` (Dutch), `sv` (Swedish), `da` (Danish), `no` (Norwegian), `fi` (Finnish), and many more.
 
 ### Membership Videos (Authentication)
 For YouTube membership-only videos you've purchased access to:
@@ -73,7 +86,7 @@ Open: http://127.0.0.1:8000/
   "url": "https://youtu.be/VIDEO_ID",
   "model": "small",
   "task": "transcribe",
-  "language": null,
+  "language": "zh",
   "write_srt": true,
   "cookies_from_browser": "chrome",
   "cookies": null,
